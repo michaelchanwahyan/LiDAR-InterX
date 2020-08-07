@@ -58,12 +58,25 @@ W = [ W ;
 
 V = [];
 load cardata/private_car_01_data/ENVI.mat % load TRI and Y
+Y(:,2) = -Y(:,2);
 Y(:,2) = Y(:,2) - 10;
 Y(:,1) = Y(:,1) - 7;
+V = [ V ;
+      [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
 
-%V = [ V ;
-%      [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
+load cardata/private_car_01_data/ENVI.mat % load TRI and Y
+Y(:,2) = -Y(:,2);
+Y(:,2) = Y(:,2) - 24;
+Y(:,1) = Y(:,1) - 7;
+V = [ V ;
+      [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
 
+load cardata/private_car_01_data/ENVI.mat % load TRI and Y
+Y(:,2) = -Y(:,2);
+Y(:,2) = Y(:,2) - 38;
+Y(:,1) = Y(:,1) - 7;
+V = [ V ;
+      [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
 
 
 WV = [ W ; V ];
@@ -168,7 +181,7 @@ end ; clear azi ela
 
 PCL = PCL( PCL(:,1) >= -80 & PCL(:,1) <= 80 ...
     & PCL(:,2) >= -80 & PCL(:,2) <= 80 ...
-    & PCL(:,3) <=30 , : );
+    & PCL(:,3) <=6 , : );
 
 % plotting
 figure;
@@ -194,3 +207,8 @@ h4 = plot3(PCL(:,1), PCL(:,2), PCL(:,3), 'r*');
 pc = pointCloud(PCL);
 figure;
     pcshow(pc);
+    colormap jet;
+% combo of making gif from videos:
+% ffmpeg -i video.mp4 frame%04d.png
+% +
+% gifski -o file.gif frame*.png

@@ -52,25 +52,30 @@ function [isOnSurface2d , gamma_] = checkHit( P1 , P2 , P3, unitVec, startOrigin
     % if q is in P, then objective f(s) should be 0
     % otherwise, f(s) > 0
     
-    s   = ones(3,1)/3;
-    PtP = P'*P;
-    L   = max(eig(PtP)); % Lipschitz constant
-    obj_curr = +Inf;
-    for itr = 1 : 1E5
-        GRAD = PtP*s - P'*q;
-        s = SimplexProj((s - GRAD / L)')';
-        Ps_minus_q = P*s - q;
-        obj_prev = obj_curr;
-        obj_curr = Ps_minus_q'*Ps_minus_q;
-        if (obj_curr < 1E-3)
-            break;
-        end
-        if (abs(obj_curr - obj_prev) < 1E-6)
-            break;
-        end
-    end ; clear itr
-
-    if (obj_curr < 1E-3)
+    s = P\q;
+    if (~sum(s < 0) && (abs(sum(s) - 1) < 1E-3) && (norm(P*s-q,2) < 1E-3))
         isOnSurface2d = true;
     end
+        
+%     s   = ones(3,1)/3;
+%     PtP = P'*P;
+%     L   = max(eig(PtP)); % Lipschitz constant
+%     obj_curr = +Inf;
+%     for itr = 1 : 1E5
+%         GRAD = PtP*s - P'*q;
+%         s = SimplexProj((s - GRAD / L)')';
+%         Ps_minus_q = P*s - q;
+%         obj_prev = obj_curr;
+%         obj_curr = Ps_minus_q'*Ps_minus_q;
+%         if (obj_curr < 1E-3)
+%             break;
+%         end
+%         if (abs(obj_curr - obj_prev) < 1E-6)
+%             break;
+%         end
+%     end ; clear itr
+% 
+%     if (obj_curr < 1E-3)
+%         isOnSurface2d = true;
+%     end
 end
