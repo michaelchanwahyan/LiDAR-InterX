@@ -58,21 +58,18 @@ W = [ W ;
 
 V = [];
 load cardata/private_car_01_data/ENVI.mat % load TRI and Y
-Y(:,2) = -Y(:,2);
 Y(:,2) = Y(:,2) - 10;
 Y(:,1) = Y(:,1) - 7;
 V = [ V ;
       [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
 
 load cardata/private_car_01_data/ENVI.mat % load TRI and Y
-Y(:,2) = -Y(:,2);
 Y(:,2) = Y(:,2) - 24;
 Y(:,1) = Y(:,1) - 7;
 V = [ V ;
       [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
 
 load cardata/private_car_01_data/ENVI.mat % load TRI and Y
-Y(:,2) = -Y(:,2);
 Y(:,2) = Y(:,2) - 38;
 Y(:,1) = Y(:,1) - 7;
 V = [ V ;
@@ -120,8 +117,8 @@ vehiNum = size(V,1);
 % generate LiDAR points
 l_rps = 5; % rotation per second
 l_bm_count = 64;
-l_bm_azimu = 360;
-%l_bm_azimu = 2048;
+%l_bm_azimu = 360;
+l_bm_azimu = 2048;
 l_bm_angElev = linspace(-pi/8, pi/8, l_bm_count);
 l_bm_angAzim = linspace(0,2*pi,l_bm_azimu+1);
 l_bm_angAzim = l_bm_angAzim(1:l_bm_azimu);
@@ -182,6 +179,10 @@ end ; clear azi ela
 PCL = PCL( PCL(:,1) >= -80 & PCL(:,1) <= 80 ...
     & PCL(:,2) >= -80 & PCL(:,2) <= 80 ...
     & PCL(:,3) <=6 , : );
+
+log_fname = 'pc-'+ string(datetime('now', 'Format', 'y-m-dd-HH-mm-ss'))+ '.mat';
+save(log_fname, 'PCL');
+save(log_fname, 'log_fname', '-append');
 
 % plotting
 figure;

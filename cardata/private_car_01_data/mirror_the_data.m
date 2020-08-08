@@ -22,6 +22,7 @@ x_ = x_ - xmid;
 ymin = min(y_); ymax = max(y_);
 ymid = (ymin + ymax) / 2;
 y_ = y_ - ymid;
+y_ = -y_;
 
 zmin = min(z_);
 z_ = z_ - zmin;
