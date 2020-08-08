@@ -60,6 +60,13 @@ V = [];
 load cardata/private_car_01_data/ENVI.mat % load TRI and Y
 Y(:,2) = Y(:,2) - 10;
 Y(:,1) = Y(:,1) - 7;
+% generate rotation matrix
+    vehi_rot = pi/4; % about z axis
+    c = cos(vehi_rot); s = sin(vehi_rot); R = eye(3);
+    R(1,1) = c; R(1,2) = -s; R(2,1) = s; R(2,2) = c;
+% apply rotation to current road user
+    Y = R * Y;
+
 V = [ V ;
       [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
 
@@ -208,7 +215,7 @@ h4 = plot3(PCL(:,1), PCL(:,2), PCL(:,3), 'r*');
 pc = pointCloud(PCL);
 figure;
     pcshow(pc);
-    colormap jet;
+    colormap hsv;
 % combo of making gif from videos:
 % ffmpeg -i video.mp4 frame%04d.png
 % +
