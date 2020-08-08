@@ -62,10 +62,10 @@ Y(:,2) = Y(:,2) - 10;
 Y(:,1) = Y(:,1) - 7;
 % generate rotation matrix
     vehi_rot = pi/4; % about z axis
-    c = cos(vehi_rot); s = sin(vehi_rot); R = eye(3);
+    c = cos(vehi_rot); s = sin(vehi_rot); R = eye(4);
     R(1,1) = c; R(1,2) = -s; R(2,1) = s; R(2,2) = c;
 % apply rotation to current road user
-    Y = R * Y;
+    Y = Y * R';
 
 V = [ V ;
       [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
