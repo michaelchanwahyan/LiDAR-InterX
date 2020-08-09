@@ -1,7 +1,3 @@
-close all
-clear
-clc
-
 % inter-cross
 %         |          |
 %      (B)|          |(C)
@@ -89,7 +85,6 @@ wallNum = size(W,1);
 vehiNum = size(V,1);
 
 % generate road ground
-    roadwidth = 18.5; % meter
     x = -80:1:80;
     y = -80:1:80;
     xx = zeros(numel(x),numel(y));
@@ -105,12 +100,6 @@ vehiNum = size(V,1);
             end
         end
     end ; clear i j 
-
-% generate LiDAR sensor
-    l_orig = [-roadwidth/2 - 5, -roadwidth/2 - 5, 3.5];
-    l_tilt = [-pi/7, 0, -pi/4];
-    l_high = 0.1;
-    l_diam = 0.1;
 
     l_surfPt = zeros(3600,3);
     for i = 1 : 10
@@ -175,6 +164,11 @@ for azim = l_bm_angAzim
         for wvIdx = 1 : wallNum + vehiNum
             [ surfCandi(wvIdx) , gamma_arr(wvIdx) ] = checkHit( WV(wvIdx,1:3) , WV(wvIdx,4:6) , WV(wvIdx,7:9), u' , l_orig );
         end ; clear wIdx
+        if (~sum(surfCandi))
+            fprintf('checkHit() no surface hit at:\n');
+            disp([WV(wvIdx,1:3) , WV(wvIdx,4:6) , WV(wvIdx,7:9), u' , l_orig]);
+            continue;
+        end
         gamma_ = min( gamma_arr( surfCandi ) );
         
         % save the point
@@ -187,7 +181,7 @@ PCL = PCL( PCL(:,1) >= -80 & PCL(:,1) <= 80 ...
     & PCL(:,2) >= -80 & PCL(:,2) <= 80 ...
     & PCL(:,3) <=6 , : );
 
-log_fname = 'pc-'+ string(datetime('now', 'Format', 'y-m-dd-HH-mm-ss'))+ '.mat';
+log_fname = 'pc-'+ string(datetime('now', 'Format', 'y-MM-dd-HH-mm-ss')) + '.mat';
 save(log_fname, 'PCL');
 save(log_fname, 'log_fname', '-append');
 
