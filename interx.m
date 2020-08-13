@@ -53,36 +53,63 @@ W = [ W ;
     ];
 
 V = [];
-load cardata/private_car_01_data/ENVI.mat % load TRI and Y
-Y(:,2) = Y(:,2) - 10;
-Y(:,1) = Y(:,1) - 7;
-% generate rotation matrix
-    vehi_rot = pi/4; % about z axis
-    c = cos(vehi_rot); s = sin(vehi_rot); R = eye(4);
-    R(1,1) = c; R(1,2) = -s; R(2,1) = s; R(2,2) = c;
-% apply rotation to current road user
-    Y = Y * R';
+% road user 01
+    load cardata/private_car_01_data/ENVI.mat % load TRI and Y
+    % generate rotation matrix
+        vehi_rot = pi/4; % about z axis
+        c = cos(vehi_rot); s = sin(vehi_rot); R = eye(4);
+        R(1,1) = c; R(1,2) = -s; R(2,1) = s; R(2,2) = c;
+    % apply rotation to current road user
+        Y = Y * R';
+    Y(:,2) = Y(:,2) - 10;
+    Y(:,1) = Y(:,1) - 7;
+    V = [ V ;
+          [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
 
-V = [ V ;
-      [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
+% road user 02
+    load cardata/private_car_01_data/ENVI.mat % load TRI and Y
+    Y(:,2) = Y(:,2) - 24;
+    Y(:,1) = Y(:,1) - 7;
+    V = [ V ;
+          [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
 
-load cardata/private_car_01_data/ENVI.mat % load TRI and Y
-Y(:,2) = Y(:,2) - 24;
-Y(:,1) = Y(:,1) - 7;
-V = [ V ;
-      [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
+% road user 03
+    load cardata/private_car_01_data/ENVI.mat % load TRI and Y
+    Y(:,2) = Y(:,2) - 38;
+    Y(:,1) = Y(:,1) - 7;
+    V = [ V ;
+          [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
 
-load cardata/private_car_01_data/ENVI.mat % load TRI and Y
-Y(:,2) = Y(:,2) - 38;
-Y(:,1) = Y(:,1) - 7;
-V = [ V ;
-      [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
-
+% road user 04
+    load cardata/private_car_01_data/ENVI.mat % load TRI and Y
+    % generate rotation matrix
+        vehi_rot = -pi/2; % about z axis
+        c = cos(vehi_rot); s = sin(vehi_rot); R = eye(4);
+        R(1,1) = c; R(1,2) = -s; R(2,1) = s; R(2,2) = c;
+    % apply rotation to current road user
+        Y = Y * R';
+    Y(:,2) = Y(:,2) + 6;
+    Y(:,1) = Y(:,1) + 15;
+    V = [ V ;
+          [ Y(TRI(:,1),1:3) , Y(TRI(:,2),1:3) , Y(TRI(:,3),1:3) ] ];
 
 WV = [ W ; V ];
 
 wallNum = size(W,1);
 vehiNum = size(V,1);
+
+% for efficient computation, pre-compute abcd parameter of WV plane equations
+WV123 = WV(:,1:3);
+WV456 = WV(:,4:6);
+WV789 = WV(:,7:9);
+WVabcd = ones(wallNum + vehiNum, 4);
+P = cell(wallNum + vehiNum,1); % P matrix
+Pi = cell(wallNum + vehiNum,1); % P inverse matrix
+for i = 1 : wallNum + vehiNum
+    WVabcd(i,:) = [ -([WV123(i,:); WV456(i,:); WV789(i,:)] \ ones(3,1))', 1];
+    P{i,1} = [WV123(i,:); WV456(i,:); WV789(i,:)]';
+    Pi{i,1} = inv(P{i,1});
+end
 
 % generate road ground
     x = -80:1:80;
@@ -118,8 +145,11 @@ l_bm_azimu = 2048;
 l_bm_angElev = linspace(-pi/8, pi/8, l_bm_count);
 l_bm_angAzim = linspace(0,2*pi,l_bm_azimu+1);
 l_bm_angAzim = l_bm_angAzim(1:l_bm_azimu);
+l_bm_angAzim = [ l_bm_angAzim(1:floor(l_bm_azimu*0.39)),...
+                 l_bm_angAzim(floor(l_bm_azimu*0.61):end) ];
 
-ptNum = l_bm_azimu * l_bm_count;
+%ptNum = l_bm_azimu * l_bm_count;
+ptNum = numel(l_bm_angAzim) * l_bm_count;
 PCL = zeros(ptNum, 3);
 
 % construct laser beam unit vector u
@@ -162,7 +192,8 @@ for azim = l_bm_angAzim
         surfCandi = false(1,wallNum + vehiNum); % surface candidates wrt WL
         gamma_arr = zeros(1,wallNum + vehiNum); % gamma value candidates
         for wvIdx = 1 : wallNum + vehiNum
-            [ surfCandi(wvIdx) , gamma_arr(wvIdx) ] = checkHit( WV(wvIdx,1:3) , WV(wvIdx,4:6) , WV(wvIdx,7:9), u' , l_orig );
+            %[ surfCandi(wvIdx) , gamma_arr(wvIdx) ] = checkHit( WV(wvIdx,1:3) , WV(wvIdx,4:6) , WV(wvIdx,7:9), u' , l_orig );
+            [ surfCandi(wvIdx) , gamma_arr(wvIdx) ] = checkHit_abcd(WVabcd(wvIdx,:), P{wvIdx,1}, Pi{wvIdx,1}, u' , l_orig );
         end ; clear wIdx
         if (~sum(surfCandi))
             fprintf('checkHit() no surface hit at:\n');
@@ -184,6 +215,10 @@ PCL = PCL( PCL(:,1) >= -80 & PCL(:,1) <= 80 ...
 log_fname = 'pc-'+ string(datetime('now', 'Format', 'y-MM-dd-HH-mm-ss')) + '.mat';
 save(log_fname, 'PCL');
 save(log_fname, 'log_fname', '-append');
+save(log_fname, 'roadwidth', '-append');
+save(log_fname, 'l_orig', '-append');
+save(log_fname, 'l_tilt', '-append');
+save(log_fname, 'l_high', '-append');
 
 % plotting
 figure;
